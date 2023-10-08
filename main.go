@@ -1,28 +1,31 @@
 package main
 
 import (
-	"fmt"
-	"strconv"
+	"database/sql"
+	_ "github.com/lib/pq"
+	"gobank/api"
+	db "gobank/db/sqlc"
+	"log"
 )
 
-func swapper(a, b string) (int, int, bool) {
-	r, err := strconv.Atoi(a)
-	if err != nil {
-		return 0, 0, true
-	}
-	r2, err := strconv.Atoi(b)
-	if err != nil {
-		return 0, 0, true
-	}
-	return r, r2, false
-}
+const (
+	dbDriver = "postgres"
+	dbSource = "postgresql://admin1:admin2@localhost:5432/gobank?sslmode=disable"
+	dbAdress = "localhost:8080"
+)
 
 func main() {
-	a, b, err := swapper("123", "333")
-	if err {
-		fmt.Println("asdasd")
+	conn, err := sql.Open(dbDriver, dbSource)
+	if err != nil {
 		return
 	}
-	fmt.Println(a+1, b+1000)
+
+	store := db.NewStore(conn)
+	server := api.NewServer(store)
+
+	err = server.Start(dbAdress)
+	if err != nil {
+		log.Fatal("caccnot start server", err.Error())
+	}
 	return
 }
